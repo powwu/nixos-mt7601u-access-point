@@ -8,11 +8,27 @@ inputs = {
     };
 };
 ```
+Then configure your system to use unstable nixpkgs and the latest kernel package set:
+```
+{
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+
+  outputs = { nixpkgs, ... }: {
+    nixosConfigurations.your-host = nixpkgs.lib.nixosSystem {
+      modules = [
+        ({ pkgs, ... }: {
+          boot.kernelPackages = pkgs.linuxPackages_latest;
+        })
+      ];
+    };
+  };
+}
+```
 Then, add the package:
 ```
 boot.extraModulePackages = with config.boot.kernelPackages; [ inputs.mt7601u-access-point.packages.x86_64-linux.default ];
 ```
-**You can only use the flake if you're using the `pkgs.linuxPackages_zen.kernel` kernel.** You may need to temporarily remove the extraModulePackages option if you're switching release channels, like going from stable to unstable or vice versa.
+The flake package now defaults to `pkgs.linuxPackages_latest.kernel`. You may need to temporarily remove the `boot.extraModulePackages` option if you're switching release channels or kernel package sets.
 
 ## As a local package
 In your `configuration.nix`:

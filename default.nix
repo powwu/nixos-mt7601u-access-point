@@ -1,6 +1,6 @@
 { pkgs
 , lib
-, kernel ? pkgs.linuxPackages_zen.kernel
+, kernel ? pkgs.linuxPackages_latest.kernel
 }:
 
 pkgs.stdenv.mkDerivation {
@@ -34,4 +34,3 @@ pkgs.stdenv.mkDerivation {
     license = lib.licenses.gpl2;
   };
 }
-
