@@ -8,27 +8,35 @@ inputs = {
     };
 };
 ```
-Then configure your system to use unstable nixpkgs and the latest kernel package set:
+Then import the NixOS module and enable it:
 ```
 {
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-
-  outputs = { nixpkgs, ... }: {
+  outputs = { nixpkgs, mt7601u-access-point, ... }: {
     nixosConfigurations.your-host = nixpkgs.lib.nixosSystem {
       modules = [
-        ({ pkgs, ... }: {
-          boot.kernelPackages = pkgs.linuxPackages_latest;
+        mt7601u-access-point.nixosModules.default
+        ({ ... }: {
+          hardware.mt7601u-access-point.enable = true;
         })
       ];
     };
   };
 }
 ```
-Then, add the package:
+The module builds the driver against `config.boot.kernelPackages.kernel`, so it follows whichever kernel package set your system already uses.
+
+Alternatively, add the overlay and pass the active kernel explicitly:
 ```
-boot.extraModulePackages = with config.boot.kernelPackages; [ inputs.mt7601u-access-point.packages.x86_64-linux.default ];
+{
+  nixpkgs.overlays = [
+    inputs.mt7601u-access-point.overlays.default
+  ];
+
+  boot.extraModulePackages = [
+    (pkgs.mt7601u-access-pointFor config.boot.kernelPackages.kernel)
+  ];
+}
 ```
-The flake package now defaults to `pkgs.linuxPackages_latest.kernel`. You may need to temporarily remove the `boot.extraModulePackages` option if you're switching release channels or kernel package sets.
 
 ## As a local package
 In your `configuration.nix`:
