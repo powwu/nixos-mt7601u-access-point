@@ -8,11 +8,35 @@ inputs = {
     };
 };
 ```
-Then, add the package:
+Then import the NixOS module and enable it:
 ```
-boot.extraModulePackages = with config.boot.kernelPackages; [ inputs.mt7601u-access-point.packages.x86_64-linux.default ];
+{
+  outputs = { nixpkgs, mt7601u-access-point, ... }: {
+    nixosConfigurations.your-host = nixpkgs.lib.nixosSystem {
+      modules = [
+        mt7601u-access-point.nixosModules.default
+        ({ ... }: {
+          hardware.mt7601u-access-point.enable = true;
+        })
+      ];
+    };
+  };
+}
 ```
-**You can only use the flake if you're using the `pkgs.linuxPackages.kernel` kernel.** You may need to temporarily remove the extraModulePackages option if you're switching release channels, like going from stable to unstable or vice versa.
+The module builds the driver against `config.boot.kernelPackages.kernel`, so it follows whichever kernel package set your system already uses.
+
+Alternatively, add the overlay and pass the active kernel explicitly:
+```
+{
+  nixpkgs.overlays = [
+    inputs.mt7601u-access-point.overlays.default
+  ];
+
+  boot.extraModulePackages = [
+    (pkgs.mt7601u-access-pointFor config.boot.kernelPackages.kernel)
+  ];
+}
+```
 
 ## As a local package
 In your `configuration.nix`:
